@@ -7,4 +7,12 @@ const connection = mysql.createConnection({
   database: "compasscar",
 });
 
+connection.connect((err) => {
+  if (err) {
+    console.error("Erro ao conectar:", err);
+  }
+
+  console.log("Conectado ao banco de dados.");
+});
+
 module.exports = connection;

@@ -4,14 +4,6 @@ const db = require("./database/connection");
 
 const app = express();
 
-db.connect((err) => {
-  if (err) {
-    console.error("Erro ao conectar:", err);
-    process.exit(1);
-  }
-  console.log("Conectado ao banco de dados.");
-});
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -48,6 +40,15 @@ app.get("/api/v1/cars", (req, res) => {
     }
 
     res.status(200).json(rows);
+  });
+});
+
+app.get("/api/v1/cars/:id", (req, res) => {
+  const sql = "SELECT * FROM cars WHERE id = ?";
+
+  db.execute(sql, [req.params.id], (err, rows) => {
+    console.log(rows);
+    res.status(200).json(...rows)
   });
 });
 
