@@ -7,6 +7,4 @@ const connection = mysql.createConnection({
   database: "compasscar",
 });
 
-connection.connect();
-
 module.exports = connection;
