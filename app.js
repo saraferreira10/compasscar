@@ -38,6 +38,19 @@ app.post("/api/v1/cars", (req, res) => {
   }
 });
 
+app.get("/api/v1/cars", (req, res) => {
+  const sql = "SELECT * FROM cars";
+
+  db.execute(sql, (err, rows) => {
+    if (err instanceof Error) {
+      console.log(err);
+      return;
+    }
+
+    res.status(200).json(rows);
+  });
+});
+
 app.use((req, res) => res.send("Hello World"));
 
 app.listen(3000);
