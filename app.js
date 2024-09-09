@@ -52,6 +52,15 @@ app.get("/api/v1/cars/:id", (req, res) => {
   });
 });
 
+app.delete("/api/v1/cars/:id", (req, res)=>{
+  const sql = "DELETE FROM cars WHERE id = ?"
+
+  db.execute(sql, [req.params.id], (err, rows)=>{
+    console.log(rows);
+    res.status(204).send()
+  })
+})
+
 app.use((req, res) => res.send("Hello World"));
 
 app.listen(3000);
