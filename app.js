@@ -42,6 +42,7 @@ app.post("/api/v1/cars", async (req, res) => {
       message: `year should be between ${currentYear - 10} and ${currentYear}`,
     });
   }
+
   const values = [brand, model, year];
 
   const [identicalCar] = await db.execute(
@@ -142,19 +143,22 @@ app.patch("/api/v1/cars/:id", async (req, res) => {
   const queryFields = []; // armazena as partes necessárias na construção da query (ex. "field = ?")
   const valueFields = []; // armazena os valores que serão colocados no prepared statement
 
-  if (brand) {
+  if (brand && brand.trim() !== "") {
     queryFields.push("brand = ?");
     valueFields.push(brand);
   }
 
-  if (model) {
+  if (model && model.trim() !== "") {
     queryFields.push("model = ?");
     valueFields.push(model);
   }
 
   if (year) {
-    queryFields.push("year = ?");
-    valueFields.push(year);
+    const currentYear = new Date().getFullYear() + 1;
+    if (!(year < currentYear - 10 || year > currentYear)) {
+      queryFields.push("year = ?");
+      valueFields.push(year);
+    }
   }
 
   valueFields.push(req.params.id);
@@ -182,7 +186,9 @@ app.delete("/api/v1/cars/:id", async (req, res) => {
       return res.status(404).json({ status: "fail", message: "car not found" });
     }
 
-    await db.execute("DELETE FROM cars_items WHERE car_id = ?", [req.params.id])
+    await db.execute("DELETE FROM cars_items WHERE car_id = ?", [
+      req.params.id,
+    ]);
     await db.execute(sql, [req.params.id]);
     res.status(204).send();
   } catch (e) {
