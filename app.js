@@ -91,9 +91,9 @@ app.get("/api/v1/cars/:id", async (req, res) => {
   const sql = "SELECT * FROM cars WHERE id = ?";
 
   try {
-    const [cars] = await db.execute(sql, [req.params.id]);
+    const [car] = await db.execute(sql, [req.params.id]);
 
-    if (cars.length === 0) {
+    if (car.length === 0) {
       return res.status(404).json({ status: "fail", message: "car not found" });
     }
 
@@ -102,8 +102,8 @@ app.get("/api/v1/cars/:id", async (req, res) => {
       [req.params.id]
     );
 
-    cars[0].items = items.map((item) => item.name);
-    res.status(200).json(...cars);
+    car[0].items = items.map((item) => item.name);
+    res.status(200).json(...car);
   } catch (e) {
     console.log(e.message);
     res.status(500).json({ error: "internal server error" });
@@ -138,34 +138,41 @@ app.get("/api/v1/cars", async (req, res) => {
 });
 
 app.patch("/api/v1/cars/:id", async (req, res) => {
-  const { brand, model, year } = req.body;
-
-  const queryFields = []; // armazena as partes necessárias na construção da query (ex. "field = ?")
-  const valueFields = []; // armazena os valores que serão colocados no prepared statement
-
-  if (brand && brand.trim() !== "") {
-    queryFields.push("brand = ?");
-    valueFields.push(brand);
-  }
-
-  if (model && model.trim() !== "") {
-    queryFields.push("model = ?");
-    valueFields.push(model);
-  }
-
-  if (year) {
-    const currentYear = new Date().getFullYear() + 1;
-    if (!(year < currentYear - 10 || year > currentYear)) {
-      queryFields.push("year = ?");
-      valueFields.push(year);
-    }
-  }
-
-  valueFields.push(req.params.id);
-
-  const query = `UPDATE cars SET ${queryFields} WHERE id = ?`;
-
   try {
+    const [car] = await db.execute("SELECT * FROM cars WHERE id = ?", [
+      req.params.id,
+    ]);
+
+    if (car.length === 0) {
+      return res.status(404).json({ status: "fail", message: "car not found" });
+    }
+
+    const { brand, model, year } = req.body;
+
+    const queryFields = []; // armazena as partes necessárias na construção da query (ex. "field = ?")
+    const valueFields = []; // armazena os valores que serão colocados no prepared statement
+
+    if (brand && brand.trim() !== "") {
+      queryFields.push("brand = ?");
+      valueFields.push(brand);
+    }
+
+    if (model && model.trim() !== "") {
+      queryFields.push("model = ?");
+      valueFields.push(model);
+    }
+
+    if (year) {
+      const currentYear = new Date().getFullYear() + 1;
+      if (!(year < currentYear - 10 || year > currentYear)) {
+        queryFields.push("year = ?");
+        valueFields.push(year);
+      }
+    }
+
+    valueFields.push(req.params.id);
+
+    const query = `UPDATE cars SET ${queryFields} WHERE id = ?`;
     await db.execute(query, valueFields);
     res.status(204).send();
   } catch (e) {
