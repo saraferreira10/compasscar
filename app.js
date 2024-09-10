@@ -149,6 +149,18 @@ app.patch("/api/v1/cars/:id", async (req, res) => {
 
     const { brand, model, year } = req.body;
 
+    const [identicalCar] = await db.execute(
+      "SELECT * FROM cars WHERE brand = ? AND model = ? AND year = ? AND id != ?",
+      [brand || car[0].brand, model || car[0].model, year || car[0].year, req.params.id]
+    );
+
+    if (identicalCar.length !== 0) {
+      return res.status(409).json({
+        status: "fail",
+        message: "there is already a car with this data",
+      });
+    }
+
     const queryFields = []; // armazena as partes necessárias na construção da query (ex. "field = ?")
     const valueFields = []; // armazena os valores que serão colocados no prepared statement
 
