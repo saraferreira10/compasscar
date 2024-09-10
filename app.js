@@ -1,7 +1,6 @@
 const express = require("express");
 
 const db = require("./database/connection");
-const connection = require("./database/connection");
 
 const app = express();
 
@@ -11,17 +10,24 @@ app.use(express.urlencoded({ extended: true }));
 app.post("/api/v1/cars", async (req, res) => {
   const { brand, model, year, items } = req.body;
 
-  const query = "INSERT INTO cars (brand, model, year) VALUES (?, ?, ?)";
+  const queryCreateCar =
+    "INSERT INTO cars (brand, model, year) VALUES (?, ?, ?)";
 
   const values = [brand, model, year];
 
-  console.log(items);
-
   try {
-    const [result] = await db.execute(query, values);
-    res
-      .status(201)
-      .json(Object.assign({ id: result.insertId }, { brand, model, year }));
+    const [result] = await db.execute(queryCreateCar, values);
+    const carId = result.insertId;
+
+    if (items) {
+      for (const item of items) {
+        const queryCreateItems =
+          "INSERT INTO cars_items (name, car_id)  VALUES (?, ?)";
+        await db.execute(queryCreateItems, [item, carId]);
+      }
+    }
+
+    res.status(201).json(Object.assign({ id: carId }, { brand, model, year }));
   } catch (e) {
     console.log(e.message);
     res.status(500).json({ error: "internal server error" });
