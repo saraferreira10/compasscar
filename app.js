@@ -50,12 +50,10 @@ app.post("/api/v1/cars", async (req, res) => {
   );
 
   if (identicalCar.length !== 0) {
-    return res
-      .status(409)
-      .json({
-        status: "fail",
-        message: "there is already a car with this data",
-      });
+    return res.status(409).json({
+      status: "fail",
+      message: "there is already a car with this data",
+    });
   }
 
   const queryCreateCar =
@@ -176,6 +174,14 @@ app.delete("/api/v1/cars/:id", async (req, res) => {
   const sql = "DELETE FROM cars WHERE id = ?";
 
   try {
+    const [cars] = await db.execute("SELECT * FROM cars WHERE id = ?", [
+      req.params.id,
+    ]);
+
+    if (cars.length === 0) {
+      return res.status(404).json({ status: "fail", message: "car not found" });
+    }
+
     await db.execute(sql, [req.params.id]);
     res.status(204).send();
   } catch (e) {
