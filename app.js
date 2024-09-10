@@ -182,6 +182,7 @@ app.delete("/api/v1/cars/:id", async (req, res) => {
       return res.status(404).json({ status: "fail", message: "car not found" });
     }
 
+    await db.execute("DELETE FROM cars_items WHERE car_id = ?", [req.params.id])
     await db.execute(sql, [req.params.id]);
     res.status(204).send();
   } catch (e) {
