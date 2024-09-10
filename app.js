@@ -34,21 +34,32 @@ app.post("/api/v1/cars", async (req, res) => {
       .json({ status: "fail", message: "items is required" });
   }
 
-  const currentYear = new Date().getFullYear() + 1; 
+  const currentYear = new Date().getFullYear() + 1;
 
   if (year < currentYear - 10 || year > currentYear) {
+    return res.status(400).json({
+      status: "fail",
+      message: `year should be between ${currentYear - 10} and ${currentYear}`,
+    });
+  }
+  const values = [brand, model, year];
+
+  const [identicalCar] = await db.execute(
+    "SELECT * FROM cars WHERE brand = ? AND model = ? AND year = ?",
+    values
+  );
+
+  if (identicalCar.length !== 0) {
     return res
-      .status(400)
+      .status(409)
       .json({
         status: "fail",
-        message: `year should be between ${currentYear - 10} and ${currentYear}`,
+        message: "there is already a car with this data",
       });
   }
 
   const queryCreateCar =
     "INSERT INTO cars (brand, model, year) VALUES (?, ?, ?)";
-
-  const values = [brand, model, year];
 
   try {
     const [result] = await db.execute(queryCreateCar, values);
