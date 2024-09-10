@@ -56,7 +56,7 @@ app.get("/api/v1/cars", async (req, res) => {
   }
 });
 
-app.patch("/api/v1/cars/:id", (req, res) => {
+app.patch("/api/v1/cars/:id", async (req, res) => {
   const { brand, model, year } = req.body;
 
   const queryFields = []; // armazena as partes necessárias na construção da query (ex. "field = ?")
@@ -81,18 +81,25 @@ app.patch("/api/v1/cars/:id", (req, res) => {
 
   const query = `UPDATE cars SET ${queryFields} WHERE id = ?`;
 
-  connection.execute(query, valueFields, (err, result, fields) => {
+  try {
+    await db.execute(query, valueFields);
     res.status(204).send();
-  });
+  } catch (e) {
+    console.log(e.message);
+    res.status(500).json({ error: "internal server error" });
+  }
 });
 
-app.delete("/api/v1/cars/:id", (req, res) => {
+app.delete("/api/v1/cars/:id", async (req, res) => {
   const sql = "DELETE FROM cars WHERE id = ?";
 
-  db.execute(sql, [req.params.id], (err, rows) => {
-    console.log(rows);
+  try {
+    await db.execute(sql, [req.params.id]);
     res.status(204).send();
-  });
+  } catch (e) {
+    console.log(e.message);
+    res.status(500).json({ error: "internal server error" });
+  }
 });
 
 app.use((req, res) => res.send("Hello World"));
