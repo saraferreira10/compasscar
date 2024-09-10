@@ -46,8 +46,16 @@ app.get("/api/v1/cars/:id", async (req, res) => {
   const sql = "SELECT * FROM cars WHERE id = ?";
 
   try {
-    const [rows] = await db.execute(sql, [req.params.id]);
-    res.status(200).json(...rows);
+    const [cars] = await db.execute(sql, [req.params.id]);
+    const [items] = await db.execute(
+      "SELECT * FROM cars_items WHERE car_id = ?",
+      [req.params.id]
+    );
+
+    cars[0].items = items.map((item) => item.name);
+    console.log(cars)
+
+    res.status(200).json(Object.assign(cars, cars.items));
   } catch (e) {
     console.log(e.message);
     res.status(500).json({ error: "internal server error" });
@@ -67,7 +75,6 @@ app.get("/api/v1/cars", async (req, res) => {
 
       // itera sobre todos os itens
       for (let i = 0; i < items.length; i++) {
-
         // verifica se determinado item pertence ao carro atual
         if (items[i].car_id == cars[j].id) {
           cars[j].items.push(items[i].name);
