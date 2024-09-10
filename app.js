@@ -19,17 +19,19 @@ app.post("/api/v1/cars", async (req, res) => {
     const [result] = await db.execute(queryCreateCar, values);
     const carId = result.insertId;
 
-    if (items) {
-      const uniqueItems = new Set(items); // eliminando itens repetidos
+    let uniqueItems = [];
 
-      for (const item of [...uniqueItems]) {
+    if (items) {
+      uniqueItems = [...new Set(items)]; // eliminando itens repetidos
+
+      for (const item of uniqueItems) {
         const queryCreateItems =
           "INSERT INTO cars_items (name, car_id)  VALUES (?, ?)";
         await db.execute(queryCreateItems, [item, carId]);
       }
     }
 
-    res.status(201).json(Object.assign({ id: carId }, { brand, model, year }));
+    res.status(201).json(Object.assign({ id: carId }, { brand, model, year, items: uniqueItems }));
   } catch (e) {
     console.log(e.message);
     res.status(500).json({ error: "internal server error" });
