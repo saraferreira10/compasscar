@@ -20,7 +20,9 @@ app.post("/api/v1/cars", async (req, res) => {
     const carId = result.insertId;
 
     if (items) {
-      for (const item of items) {
+      const uniqueItems = new Set(items); // eliminando itens repetidos
+
+      for (const item of [...uniqueItems]) {
         const queryCreateItems =
           "INSERT INTO cars_items (name, car_id)  VALUES (?, ?)";
         await db.execute(queryCreateItems, [item, carId]);
