@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.post("/api/v1/cars", (req, res) => {
+app.post("/api/v1/cars", async (req, res) => {
   const { brand, model, year, items } = req.body;
 
   const query = "INSERT INTO cars (brand, model, year) VALUES (?, ?, ?)";
@@ -16,19 +16,15 @@ app.post("/api/v1/cars", (req, res) => {
   const values = [brand, model, year];
 
   console.log(items);
-  try {
-    db.execute(query, values, (err, result, fields) => {
-      if (err instanceof Error) {
-        console.log(err);
-        return;
-      }
 
-      return res
-        .status(201)
-        .json(Object.assign({ id: result.insertId }, { brand, model, year }));
-    });
+  try {
+    const [result] = await db.execute(query, values);
+    res
+      .status(201)
+      .json(Object.assign({ id: result.insertId }, { brand, model, year }));
   } catch (e) {
-    console.log("Error:", e);
+    console.log(e.message);
+    res.status(500).json({ error: "internal server error" });
   }
 });
 
