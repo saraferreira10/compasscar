@@ -1,6 +1,7 @@
 const express = require("express");
 
 const db = require("./database/connection");
+const connection = require("./database/connection");
 
 const app = express();
 
@@ -48,18 +49,48 @@ app.get("/api/v1/cars/:id", (req, res) => {
 
   db.execute(sql, [req.params.id], (err, rows) => {
     console.log(rows);
-    res.status(200).json(...rows)
+    res.status(200).json(...rows);
   });
 });
 
-app.delete("/api/v1/cars/:id", (req, res)=>{
-  const sql = "DELETE FROM cars WHERE id = ?"
+app.patch("/api/v1/cars/:id", (req, res) => {
+  const { brand, model, year } = req.body;
 
-  db.execute(sql, [req.params.id], (err, rows)=>{
+  const queryFields = []; // armazena as querys que o usuário deseja atualizar
+  const valueFields = []; // armazena os valores que serão colocados no prepared statement
+
+  if (brand) {
+    queryFields.push("brand = ?");
+    valueFields.push(brand);
+  }
+
+  if (model) {
+    queryFields.push("model = ?");
+    valueFields.push(model);
+  }
+
+  if (year) {
+    queryFields.push("year = ?");
+    valueFields.push(year);
+  }
+
+  valueFields.push(req.params.id);
+
+  const query = `UPDATE cars SET ${queryFields} WHERE id = ?`;
+
+  connection.execute(query, valueFields, (err, result, fields) => {
+    res.status(204).send();
+  });
+});
+
+app.delete("/api/v1/cars/:id", (req, res) => {
+  const sql = "DELETE FROM cars WHERE id = ?";
+
+  db.execute(sql, [req.params.id], (err, rows) => {
     console.log(rows);
-    res.status(204).send()
-  })
-})
+    res.status(204).send();
+  });
+});
 
 app.use((req, res) => res.send("Hello World"));
 
