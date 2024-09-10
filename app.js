@@ -9,12 +9,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.post("/api/v1/cars", (req, res) => {
-  const { brand, model, year } = req.body;
+  const { brand, model, year, items } = req.body;
 
   const query = "INSERT INTO cars (brand, model, year) VALUES (?, ?, ?)";
 
   const values = [brand, model, year];
 
+  console.log(items);
   try {
     db.execute(query, values, (err, result, fields) => {
       if (err instanceof Error) {
@@ -31,17 +32,16 @@ app.post("/api/v1/cars", (req, res) => {
   }
 });
 
-app.get("/api/v1/cars", (req, res) => {
+app.get("/api/v1/cars", async (req, res) => {
   const sql = "SELECT * FROM cars";
 
-  db.execute(sql, (err, rows) => {
-    if (err instanceof Error) {
-      console.log(err);
-      return;
-    }
-
+  try {
+    const [rows] = await db.execute(sql);
     res.status(200).json(rows);
-  });
+  } catch (e) {
+    console.log(e.message);
+    res.status(500).json({ error: "internal server error" });
+  }
 });
 
 app.get("/api/v1/cars/:id", (req, res) => {
@@ -56,7 +56,7 @@ app.get("/api/v1/cars/:id", (req, res) => {
 app.patch("/api/v1/cars/:id", (req, res) => {
   const { brand, model, year } = req.body;
 
-  const queryFields = []; // armazena as querys que o usuário deseja atualizar
+  const queryFields = []; // armazena as partes necessárias na construção da query (ex. "field = ?")
   const valueFields = []; // armazena os valores que serão colocados no prepared statement
 
   if (brand) {
