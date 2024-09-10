@@ -47,15 +47,19 @@ app.get("/api/v1/cars/:id", async (req, res) => {
 
   try {
     const [cars] = await db.execute(sql, [req.params.id]);
+    console.log(cars);
+
+    if (cars.length === 0) {
+      return res.status(404).json({ status: "fail", message: "car not found" });
+    }
+
     const [items] = await db.execute(
       "SELECT * FROM cars_items WHERE car_id = ?",
       [req.params.id]
     );
 
     cars[0].items = items.map((item) => item.name);
-    console.log(cars)
-
-    res.status(200).json(Object.assign(cars, cars.items));
+    res.status(200).json(...cars);
   } catch (e) {
     console.log(e.message);
     res.status(500).json({ error: "internal server error" });
