@@ -32,6 +32,18 @@ app.post("/api/v1/cars", (req, res) => {
   }
 });
 
+app.get("/api/v1/cars/:id", async (req, res) => {
+  const sql = "SELECT * FROM cars WHERE id = ?";
+
+  try {
+    const [rows] = await db.execute(sql, [req.params.id]);
+    res.status(200).json(...rows);
+  } catch (e) {
+    console.log(e.message);
+    res.status(500).json({ error: "internal server error" });
+  }
+});
+
 app.get("/api/v1/cars", async (req, res) => {
   const sql = "SELECT * FROM cars";
 
@@ -42,15 +54,6 @@ app.get("/api/v1/cars", async (req, res) => {
     console.log(e.message);
     res.status(500).json({ error: "internal server error" });
   }
-});
-
-app.get("/api/v1/cars/:id", (req, res) => {
-  const sql = "SELECT * FROM cars WHERE id = ?";
-
-  db.execute(sql, [req.params.id], (err, rows) => {
-    console.log(rows);
-    res.status(200).json(...rows);
-  });
 });
 
 app.patch("/api/v1/cars/:id", (req, res) => {
