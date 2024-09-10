@@ -147,11 +147,16 @@ app.patch("/api/v1/cars/:id", async (req, res) => {
       return res.status(404).json({ status: "fail", message: "car not found" });
     }
 
-    const { brand, model, year } = req.body;
+    const { brand, model, year, items } = req.body;
 
     const [identicalCar] = await db.execute(
       "SELECT * FROM cars WHERE brand = ? AND model = ? AND year = ? AND id != ?",
-      [brand || car[0].brand, model || car[0].model, year || car[0].year, req.params.id]
+      [
+        brand || car[0].brand,
+        model || car[0].model,
+        year || car[0].year,
+        req.params.id,
+      ]
     );
 
     if (identicalCar.length !== 0) {
@@ -179,6 +184,21 @@ app.patch("/api/v1/cars/:id", async (req, res) => {
       if (!(year < currentYear - 10 || year > currentYear)) {
         queryFields.push("year = ?");
         valueFields.push(year);
+      }
+    }
+
+    if (items) {
+      await db.execute("DELETE FROM cars_items WHERE car_id = ?", [
+        req.params.id,
+      ]);
+
+      const uniqueItems = [...new Set(items)]; // eliminando itens repetidos
+
+      for (const item of uniqueItems) {
+        const queryCreateItems =
+          "INSERT INTO cars_items (name, car_id)  VALUES (?, ?)";
+
+        await db.execute(queryCreateItems, [item, req.params.id]);
       }
     }
 
