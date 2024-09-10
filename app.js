@@ -31,7 +31,11 @@ app.post("/api/v1/cars", async (req, res) => {
       }
     }
 
-    res.status(201).json(Object.assign({ id: carId }, { brand, model, year, items: uniqueItems }));
+    res
+      .status(201)
+      .json(
+        Object.assign({ id: carId }, { brand, model, year, items: uniqueItems })
+      );
   } catch (e) {
     console.log(e.message);
     res.status(500).json({ error: "internal server error" });
@@ -54,8 +58,24 @@ app.get("/api/v1/cars", async (req, res) => {
   const sql = "SELECT * FROM cars";
 
   try {
-    const [rows] = await db.execute(sql);
-    res.status(200).json(rows);
+    const [cars] = await db.execute(sql);
+    const [items] = await db.execute("SELECT * FROM cars_items");
+
+    // itera sobre o array de carros
+    for (let j = 0; j < cars.length; j++) {
+      cars[j].items = [];
+
+      // itera sobre todos os itens
+      for (let i = 0; i < items.length; i++) {
+
+        // verifica se determinado item pertence ao carro atual
+        if (items[i].car_id == cars[j].id) {
+          cars[j].items.push(items[i].name);
+        }
+      }
+    }
+
+    res.status(200).json(cars);
   } catch (e) {
     console.log(e.message);
     res.status(500).json({ error: "internal server error" });
