@@ -10,6 +10,30 @@ app.use(express.urlencoded({ extended: true }));
 app.post("/api/v1/cars", async (req, res) => {
   const { brand, model, year, items } = req.body;
 
+  if (!brand || brand.trim() === "") {
+    return res
+      .status(400)
+      .json({ status: "fail", message: "brand is required" });
+  }
+
+  if (!model || model.trim() === "") {
+    return res
+      .status(400)
+      .json({ status: "fail", message: "model is required" });
+  }
+
+  if (!year) {
+    return res
+      .status(400)
+      .json({ status: "fail", message: "year is required" });
+  }
+
+  if (!items) {
+    return res
+      .status(400)
+      .json({ status: "fail", message: "items is required" });
+  }
+
   const queryCreateCar =
     "INSERT INTO cars (brand, model, year) VALUES (?, ?, ?)";
 
@@ -47,7 +71,6 @@ app.get("/api/v1/cars/:id", async (req, res) => {
 
   try {
     const [cars] = await db.execute(sql, [req.params.id]);
-    console.log(cars);
 
     if (cars.length === 0) {
       return res.status(404).json({ status: "fail", message: "car not found" });
