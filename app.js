@@ -34,6 +34,17 @@ app.post("/api/v1/cars", async (req, res) => {
       .json({ status: "fail", message: "items is required" });
   }
 
+  const currentYear = new Date().getFullYear() + 1; 
+
+  if (year < currentYear - 10 || year > currentYear) {
+    return res
+      .status(400)
+      .json({
+        status: "fail",
+        message: `year should be between ${currentYear - 10} and ${currentYear}`,
+      });
+  }
+
   const queryCreateCar =
     "INSERT INTO cars (brand, model, year) VALUES (?, ?, ?)";
 
