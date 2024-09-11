@@ -5,10 +5,12 @@ const middlewares = require("../middlewares/car.middleware")
 
 const router = Router();
 
+router.param("id", middlewares.checkID)
+
 router.route("/cars").get(controllers.findAll).post(controllers.save);
 router
   .route("/cars/:id")
-  .get(middlewares.checkID, controllers.findByID)
+  .get(controllers.findByID)
   .patch(controllers.patchCar)
   .delete(controllers.deleteCar);
 
