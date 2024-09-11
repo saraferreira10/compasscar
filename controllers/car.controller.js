@@ -104,7 +104,15 @@ module.exports.findByID = async (req, res) => {
 };
 
 module.exports.findAll = async (req, res) => {
-  const sql = "SELECT * FROM cars";
+  let { page, limit } = req.query;
+
+  limit = limit && limit > 10 ? 10 : limit * 1;
+  limit = limit && limit > 0 ? limit * 1 : 5;
+
+  page = +page || 1;
+  const skip = (page - 1) * limit;
+
+  const sql = `SELECT * FROM cars LIMIT ${limit} OFFSET ${skip}`;
 
   try {
     const [cars] = await db.execute(sql);
@@ -123,7 +131,7 @@ module.exports.findAll = async (req, res) => {
       }
     }
 
-    res.status(200).json(cars);
+    res.status(200).json({ count: "não implementei", pages: "não implementei",  data: cars });
   } catch (e) {
     console.log(e.message);
     res.status(500).json({ error: "internal server error" });
