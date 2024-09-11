@@ -1,5 +1,7 @@
 const db = require("../database/connection");
 
+const utils = require("../utils/car.utils");
+
 module.exports.save = async (req, res) => {
   try {
     const { brand, model, year, items } = req.body;
@@ -15,13 +17,8 @@ module.exports.save = async (req, res) => {
     let uniqueItems = [];
 
     if (items) {
-      uniqueItems = [...new Set(items)]; // eliminando itens repetidos
-
-      for (const item of uniqueItems) {
-        const queryCreateItems =
-          "INSERT INTO cars_items (name, car_id)  VALUES (?, ?)";
-        await db.execute(queryCreateItems, [item, carId]);
-      }
+      uniqueItems = utils.removeIdenticalItems(items);
+      await utils.updateCarItems(carId, uniqueItems);
     }
 
     res
