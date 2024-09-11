@@ -1,26 +1,14 @@
 const db = require("../database/connection");
 
 module.exports.save = async (req, res) => {
-  const { brand, model, year, items } = req.body;
-
-  const values = [brand, model, year];
-
-  const [identicalCar] = await db.execute(
-    "SELECT * FROM cars WHERE brand = ? AND model = ? AND year = ?",
-    values
-  );
-
-  if (identicalCar.length !== 0) {
-    return res.status(409).json({
-      status: "fail",
-      message: "there is already a car with this data",
-    });
-  }
-
-  const queryCreateCar =
-    "INSERT INTO cars (brand, model, year) VALUES (?, ?, ?)";
-
   try {
+    const { brand, model, year, items } = req.body;
+
+    const values = [brand, model, year];
+
+    const queryCreateCar =
+      "INSERT INTO cars (brand, model, year) VALUES (?, ?, ?)";
+
     const [result] = await db.execute(queryCreateCar, values);
     const carId = result.insertId;
 
@@ -108,25 +96,6 @@ module.exports.findAll = async (req, res) => {
 module.exports.patchCar = async (req, res) => {
   try {
     const { brand, model, year, items } = req.body;
-
-    const car = req.car;
-
-    const [identicalCar] = await db.execute(
-      "SELECT * FROM cars WHERE brand = ? AND model = ? AND year = ? AND id != ?",
-      [
-        brand || car.brand,
-        model || car.model,
-        year || car.year,
-        req.params.id,
-      ]
-    );
-
-    if (identicalCar.length !== 0) {
-      return res.status(409).json({
-        status: "fail",
-        message: "there is already a car with this data",
-      });
-    }
 
     const queryFields = []; // armazena as partes necessárias na construção da query (ex. "field = ?")
     const valueFields = []; // armazena os valores que serão colocados no prepared statement

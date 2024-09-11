@@ -10,11 +10,11 @@ router.param("id", middlewares.checkID);
 router
   .route("/cars")
   .get(controllers.findAll)
-  .post(middlewares.checkRequiredFields, controllers.save);
+  .post(middlewares.checkRequiredFields, middlewares.checkForIdenticalCar, controllers.save);
 router
   .route("/cars/:id")
   .get(controllers.findByID)
-  .patch(controllers.patchCar)
+  .patch(middlewares.checkForIdenticalCar, controllers.patchCar)
   .delete(controllers.deleteCar);
 
 module.exports = router;

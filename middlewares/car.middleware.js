@@ -56,3 +56,27 @@ module.exports.checkRequiredFields = (req, res, next) => {
 
   next();
 };
+
+module.exports.checkForIdenticalCar = async (req, res, next) => {
+  const { brand, model, year } = req.body;
+
+  const values = [
+    brand || req.car.brand,
+    model || req.car.model,
+    year || req.car.year,
+  ];
+
+  const [identicalCar] = await db.execute(
+    "SELECT * FROM cars WHERE brand = ? AND model = ? AND year = ?",
+    values
+  );
+
+  if (identicalCar.length !== 0) {
+    return res.status(409).json({
+      status: "fail",
+      message: "there is already a car with this data",
+    });
+  }
+
+  next();
+};
