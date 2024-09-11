@@ -5,8 +5,6 @@ const middleware = require("../middlewares/car.middleware");
 
 const router = Router();
 
-router.param("id", middleware.checkIfCarExist);
-
 router
   .route("/cars")
   .get(controller.findAll)
@@ -18,7 +16,7 @@ router
 router
   .route("/cars/:id")
   .get(controller.findByID)
-  .patch(middleware.checkForIdenticalCar, controller.patchCar)
-  .delete(controller.deleteCar);
+  .patch(middleware.checkIfCarExist, middleware.checkForIdenticalCar, controller.patchCar)
+  .delete(middleware.checkIfCarExist, controller.deleteCar);
 
 module.exports = router;

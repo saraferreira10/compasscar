@@ -34,14 +34,23 @@ module.exports.save = async (req, res) => {
 
 module.exports.findByID = async (req, res) => {
   try {
-    const car = req.car;
-
-    const [items] = await db.execute(
-      "SELECT * FROM cars_items WHERE car_id = ?",
+    const [response] = await db.execute(
+      `SELECT cars.*, group_concat(cars_items.name) AS items 
+        FROM cars 
+        LEFT JOIN cars_items ON cars.id = cars_items.car_id 
+        WHERE cars.id = ? 
+        GROUP BY cars.id`,
       [req.params.id]
     );
 
-    car.items = items.map((item) => item.name);
+    if (response.length === 0) {
+      return res.status(404).json({ error: "car not found" });
+    }
+
+    const car = response[0];
+    const itemsString = car.items;
+    car.items = itemsString.split(",");
+
     res.status(200).json(car);
   } catch (e) {
     console.log(e.message);
@@ -67,7 +76,9 @@ module.exports.findAll = async (req, res) => {
       return res.status(204).send();
     }
 
-    const [cars] = await db.execute(`SELECT * FROM cars LIMIT ${limit} OFFSET ${skip}`);
+    const [cars] = await db.execute(
+      `SELECT * FROM cars LIMIT ${limit} OFFSET ${skip}`
+    );
 
     res.status(200).json({
       count,
