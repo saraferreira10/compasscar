@@ -117,6 +117,8 @@ module.exports.findAll = async (req, res) => {
   try {
     const [cars] = await db.execute(sql);
     const [items] = await db.execute("SELECT * FROM cars_items");
+    let [count] = await db.execute("SELECT COUNT(*) FROM cars");
+    count = count[0]["COUNT(*)"];
 
     // itera sobre o array de carros
     for (let j = 0; j < cars.length; j++) {
@@ -131,7 +133,11 @@ module.exports.findAll = async (req, res) => {
       }
     }
 
-    res.status(200).json({ count: "não implementei", pages: "não implementei",  data: cars });
+    res.status(200).json({
+      count,
+      pages: Math.ceil(count / limit),
+      data: cars,
+    });
   } catch (e) {
     console.log(e.message);
     res.status(500).json({ error: "internal server error" });
