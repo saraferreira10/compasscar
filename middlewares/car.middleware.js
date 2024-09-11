@@ -9,7 +9,8 @@ module.exports.checkID = async (req, res, next) => {
       return res.status(404).json({ status: "fail", message: "car not found" });
     }
 
-    req.car = car[0];
+    if (req.method === "GET") req.car = car[0];
+
     next();
   } catch (e) {
     console.log(e);
