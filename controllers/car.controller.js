@@ -82,20 +82,15 @@ module.exports.save = async (req, res) => {
 
 module.exports.findByID = async (req, res) => {
   try {
-    const sql = "SELECT * FROM cars WHERE id = ?";
-    const [car] = await db.execute(sql, [req.params.id]);
-
-    if (car.length === 0) {
-      return res.status(404).json({ status: "fail", message: "car not found" });
-    }
+    const car = req.car;
 
     const [items] = await db.execute(
       "SELECT * FROM cars_items WHERE car_id = ?",
       [req.params.id]
     );
 
-    car[0].items = items.map((item) => item.name);
-    res.status(200).json(...car);
+    car.items = items.map((item) => item.name);
+    res.status(200).json(car);
   } catch (e) {
     console.log(e.message);
     res.status(500).json({ error: "internal server error" });
