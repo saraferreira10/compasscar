@@ -140,14 +140,6 @@ module.exports.findAll = async (req, res) => {
 
 module.exports.patchCar = async (req, res) => {
   try {
-    const [car] = await db.execute("SELECT * FROM cars WHERE id = ?", [
-      req.params.id,
-    ]);
-
-    if (car.length === 0) {
-      return res.status(404).json({ status: "fail", message: "car not found" });
-    }
-
     const { brand, model, year, items } = req.body;
 
     const [identicalCar] = await db.execute(
