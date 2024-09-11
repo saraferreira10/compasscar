@@ -59,9 +59,9 @@ module.exports.checkForIdenticalCar = async (req, res, next) => {
       : "SELECT * FROM cars WHERE brand = ? AND model = ? AND year = ? AND id != ?"; // metódo patch
 
   let values = [
-    brand && brand.trim() || req.car.brand,
-    model && model.trim() || req.car.model,
-    year && year || req.car.year,
+    (brand && brand.trim()) || req.car.brand,
+    (model && model.trim()) || req.car.model,
+    year || req.car.year,
   ];
 
   if (req.method === "PATCH") values.push(+req.params.id);

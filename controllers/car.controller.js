@@ -59,15 +59,42 @@ module.exports.findByID = async (req, res) => {
 
 module.exports.findAll = async (req, res) => {
   try {
-    let { page, limit } = req.query;
+    let { page, limit, brand, model, year } = req.query;
 
     limit = limit && limit > 10 ? 10 : limit;
     limit = limit && limit > 0 ? limit * 1 : 5;
 
-    page = +page || 1;
+    page = page * 1 || 1;
     const skip = (page - 1) * limit;
 
-    let [count] = await db.execute("SELECT COUNT(*) AS count FROM cars");
+    let sqlCars = `SELECT * FROM cars LIMIT ${limit} OFFSET ${skip}`;
+    let sqlCount = "SELECT COUNT(*) AS count FROM cars";
+
+    const filterQuery = [];
+
+    if (brand) {
+      filterQuery.push(`brand LIKE '%${brand}%'`);
+    }
+
+    if (model) {
+      filterQuery.push(`model LIKE '%${model}%'`);
+    }
+
+    if (year) {
+      filterQuery.push(`year >= ${year}`);
+    }
+
+    if (filterQuery.length > 0) {
+      sqlCars = `SELECT * FROM cars WHERE ${filterQuery.join(
+        " AND "
+      )} LIMIT ${limit} OFFSET ${skip}`;
+
+      sqlCount = `SELECT COUNT(*) AS count FROM cars WHERE ${filterQuery.join(
+        " AND "
+      )}`;
+    }
+
+    let [count] = await db.execute(sqlCount);
 
     count = count[0].count;
 
@@ -75,9 +102,7 @@ module.exports.findAll = async (req, res) => {
       return res.status(204).send();
     }
 
-    const [cars] = await db.execute(
-      `SELECT * FROM cars LIMIT ${limit} OFFSET ${skip}`
-    );
+    const [cars] = await db.execute(sqlCars);
 
     res.status(200).json({
       count,

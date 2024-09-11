@@ -13,10 +13,15 @@ router
     middleware.checkForIdenticalCar,
     controller.save
   );
+
 router
   .route("/cars/:id")
   .get(controller.findByID)
-  .patch(middleware.checkIfCarExist, middleware.checkForIdenticalCar, controller.patchCar)
+  .patch(
+    middleware.checkIfCarExist,
+    middleware.checkForIdenticalCar,
+    controller.patchCar
+  )
   .delete(middleware.checkIfCarExist, controller.deleteCar);
 
 module.exports = router;
