@@ -5,12 +5,16 @@ const middlewares = require("../middlewares/car.middleware");
 
 const router = Router();
 
-router.param("id", middlewares.checkID);
+router.param("id", middlewares.checkIfCarExist);
 
 router
   .route("/cars")
   .get(controllers.findAll)
-  .post(middlewares.checkRequiredFields, middlewares.checkForIdenticalCar, controllers.save);
+  .post(
+    middlewares.checkRequiredFields,
+    middlewares.checkForIdenticalCar,
+    controllers.save
+  );
 router
   .route("/cars/:id")
   .get(controllers.findByID)

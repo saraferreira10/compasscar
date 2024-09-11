@@ -1,6 +1,8 @@
 const db = require("../database/connection");
 
-module.exports.checkID = async (req, res, next) => {
+const utils = require("../utils/car.utils");
+
+module.exports.checkIfCarExist = async (req, res, next) => {
   try {
     const id = req.params.id * 1;
     const [car] = await db.execute("SELECT * FROM cars WHERE id = ?", [id]);
@@ -45,9 +47,9 @@ module.exports.checkRequiredFields = (req, res, next) => {
       .json({ status: "fail", message: "items is required" });
   }
 
-  const currentYear = new Date().getFullYear() + 1;
+  const { isValid, currentYear } = utils.validateCarYear(year * 1);
 
-  if (year < currentYear - 10 || year > currentYear) {
+  if (!isValid) {
     return res.status(400).json({
       status: "fail",
       message: `year should be between ${currentYear - 10} and ${currentYear}`,
@@ -60,16 +62,20 @@ module.exports.checkRequiredFields = (req, res, next) => {
 module.exports.checkForIdenticalCar = async (req, res, next) => {
   const { brand, model, year } = req.body;
 
-  const values = [
+  const sql =
+    req.method === "POST"
+      ? "SELECT * FROM cars WHERE brand = ? AND model = ? AND year = ?"
+      : "SELECT * FROM cars WHERE brand = ? AND model = ? AND year = ? AND id != ?"; // metódo patch
+
+  let values = [
     brand || req.car.brand,
     model || req.car.model,
     year || req.car.year,
   ];
 
-  const [identicalCar] = await db.execute(
-    "SELECT * FROM cars WHERE brand = ? AND model = ? AND year = ?",
-    values
-  );
+  if (req.method === "PATCH") values = [...values, req.params.id];
+
+  const [identicalCar] = await db.execute(sql, values);
 
   if (identicalCar.length !== 0) {
     return res.status(409).json({
