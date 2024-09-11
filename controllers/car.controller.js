@@ -81,9 +81,8 @@ module.exports.save = async (req, res) => {
 };
 
 module.exports.findByID = async (req, res) => {
-  const sql = "SELECT * FROM cars WHERE id = ?";
-
   try {
+    const sql = "SELECT * FROM cars WHERE id = ?";
     const [car] = await db.execute(sql, [req.params.id]);
 
     if (car.length === 0) {
