@@ -116,18 +116,8 @@ module.exports.patchCar = async (req, res) => {
     }
 
     if (items) {
-      await db.execute("DELETE FROM cars_items WHERE car_id = ?", [
-        req.params.id,
-      ]);
-
-      const uniqueItems = [...new Set(items)]; // eliminando itens repetidos
-
-      for (const item of uniqueItems) {
-        const queryCreateItems =
-          "INSERT INTO cars_items (name, car_id)  VALUES (?, ?)";
-
-        await db.execute(queryCreateItems, [item, req.params.id]);
-      }
+      const uniqueItems = utils.removeIdenticalItems(items);
+      await utils.updateCarItems(req.params.id, uniqueItems);
     }
 
     valueFields.push(req.params.id);
