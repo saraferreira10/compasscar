@@ -50,38 +50,24 @@ module.exports.findByID = async (req, res) => {
 };
 
 module.exports.findAll = async (req, res) => {
-  let { page, limit } = req.query;
-
-  limit = limit && limit > 10 ? 10 : limit * 1;
-  limit = limit && limit > 0 ? limit * 1 : 5;
-
-  page = +page || 1;
-  const skip = (page - 1) * limit;
-
-  const sql = `SELECT * FROM cars LIMIT ${limit} OFFSET ${skip}`;
-
   try {
-    const [cars] = await db.execute(sql);
-    const [items] = await db.execute("SELECT * FROM cars_items");
-    let [count] = await db.execute("SELECT COUNT(*) FROM cars");
-    count = count[0]["COUNT(*)"];
+    let { page, limit } = req.query;
 
-    // itera sobre o array de carros
-    for (let j = 0; j < cars.length; j++) {
-      cars[j].items = [];
+    limit = limit && limit > 10 ? 10 : limit;
+    limit = limit && limit > 0 ? limit * 1 : 5;
 
-      // itera sobre todos os itens
-      for (let i = 0; i < items.length; i++) {
-        // verifica se determinado item pertence ao carro atual
-        if (items[i].car_id == cars[j].id) {
-          cars[j].items.push(items[i].name);
-        }
-      }
-    }
+    page = +page || 1;
+    const skip = (page - 1) * limit;
+
+    let [count] = await db.execute("SELECT COUNT(*) AS count FROM cars");
+
+    count = count[0].count;
 
     if (count === 0) {
       return res.status(204).send();
     }
+
+    const [cars] = await db.execute(`SELECT * FROM cars LIMIT ${limit} OFFSET ${skip}`);
 
     res.status(200).json({
       count,
