@@ -1,9 +1,5 @@
 const db = require("../database/connection");
 
-module.exports.removeIdenticalItems = (items) => {
-  return [...new Set(items)];
-};
-
 module.exports.validateCarYear = (year) => {
   const currentYear = new Date().getFullYear() + 1;
   return {

@@ -17,7 +17,7 @@ module.exports.save = async (req, res) => {
     let uniqueItems = [];
 
     if (items) {
-      uniqueItems = utils.removeIdenticalItems(items);
+      uniqueItems = [...new Set(items)];
       await utils.updateCarItems(carId, uniqueItems);
     }
 
@@ -27,7 +27,7 @@ module.exports.save = async (req, res) => {
         Object.assign({ id: carId }, { brand, model, year, items: uniqueItems })
       );
   } catch (e) {
-    console.log(e.message);
+    console.log(e);
     res.status(500).json({ error: "internal server error" });
   }
 };
@@ -79,6 +79,10 @@ module.exports.findAll = async (req, res) => {
       }
     }
 
+    if (count === 0) {
+      return res.status(204).send();
+    }
+
     res.status(200).json({
       count,
       pages: Math.ceil(count / limit),
@@ -108,25 +112,28 @@ module.exports.patchCar = async (req, res) => {
     }
 
     if (year) {
-      const currentYear = new Date().getFullYear() + 1;
-      if (!(year < currentYear - 10 || year > currentYear)) {
+      const { isValid } = utils.validateCarYear(year);
+
+      if (isValid) {
         queryFields.push("year = ?");
         valueFields.push(year);
       }
     }
 
     if (items) {
-      const uniqueItems = utils.removeIdenticalItems(items);
+      const uniqueItems = [...new Set(items)];
       await utils.updateCarItems(req.params.id, uniqueItems);
     }
 
-    valueFields.push(req.params.id);
+    if (queryFields.length > 0) {
+      valueFields.push(req.params.id);
+      const query = `UPDATE cars SET ${queryFields} WHERE id = ?`;
+      await db.execute(query, valueFields);
+    }
 
-    const query = `UPDATE cars SET ${queryFields} WHERE id = ?`;
-    await db.execute(query, valueFields);
     res.status(204).send();
   } catch (e) {
-    console.log(e.message);
+    console.log(e);
     res.status(500).json({ error: "internal server error" });
   }
 };
@@ -140,7 +147,7 @@ module.exports.deleteCar = async (req, res) => {
     await db.execute("DELETE FROM cars WHERE id = ?", [req.params.id]);
     res.status(204).send();
   } catch (e) {
-    console.log(e.message);
+    console.log(e);
     res.status(500).json({ error: "internal server error" });
   }
 };

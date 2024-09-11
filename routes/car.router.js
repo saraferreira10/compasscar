@@ -1,24 +1,24 @@
 const { Router } = require("express");
 
-const controllers = require("../controllers/car.controller");
-const middlewares = require("../middlewares/car.middleware");
+const controller = require("../controllers/car.controller");
+const middleware = require("../middlewares/car.middleware");
 
 const router = Router();
 
-router.param("id", middlewares.checkIfCarExist);
+router.param("id", middleware.checkIfCarExist);
 
 router
   .route("/cars")
-  .get(controllers.findAll)
+  .get(controller.findAll)
   .post(
-    middlewares.checkRequiredFields,
-    middlewares.checkForIdenticalCar,
-    controllers.save
+    middleware.checkRequiredFields,
+    middleware.checkForIdenticalCar,
+    controller.save
   );
 router
   .route("/cars/:id")
-  .get(controllers.findByID)
-  .patch(middlewares.checkForIdenticalCar, controllers.patchCar)
-  .delete(controllers.deleteCar);
+  .get(controller.findByID)
+  .patch(middleware.checkForIdenticalCar, controller.patchCar)
+  .delete(controller.deleteCar);
 
 module.exports = router;

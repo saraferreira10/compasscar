@@ -16,7 +16,7 @@ module.exports.checkIfCarExist = async (req, res, next) => {
     next();
   } catch (e) {
     console.log(e);
-    res.status(500).json({ message: e.message });
+    res.status(500).json({ error: "internal server error" });
   }
 };
 
@@ -24,35 +24,26 @@ module.exports.checkRequiredFields = (req, res, next) => {
   const { brand, model, year, items } = req.body;
 
   if (!brand || brand.trim() === "") {
-    return res
-      .status(400)
-      .json({ status: "fail", message: "brand is required" });
+    return res.status(400).json({ error: "brand is required" });
   }
 
   if (!model || model.trim() === "") {
-    return res
-      .status(400)
-      .json({ status: "fail", message: "model is required" });
+    return res.status(400).json({ error: "model is required" });
   }
 
   if (!year) {
-    return res
-      .status(400)
-      .json({ status: "fail", message: "year is required" });
+    return res.status(400).json({ error: "year is required" });
   }
 
   if (!items) {
-    return res
-      .status(400)
-      .json({ status: "fail", message: "items is required" });
+    return res.status(400).json({ error: "items is required" });
   }
 
   const { isValid, currentYear } = utils.validateCarYear(year * 1);
 
   if (!isValid) {
     return res.status(400).json({
-      status: "fail",
-      message: `year should be between ${currentYear - 10} and ${currentYear}`,
+      error: `year should be between ${currentYear - 10} and ${currentYear}`,
     });
   }
 
@@ -73,14 +64,13 @@ module.exports.checkForIdenticalCar = async (req, res, next) => {
     year || req.car.year,
   ];
 
-  if (req.method === "PATCH") values = [...values, req.params.id];
+  if (req.method === "PATCH") values.push(+req.params.id);
 
   const [identicalCar] = await db.execute(sql, values);
 
   if (identicalCar.length !== 0) {
     return res.status(409).json({
-      status: "fail",
-      message: "there is already a car with this data",
+      error: "there is already a car with this data",
     });
   }
 
