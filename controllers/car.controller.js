@@ -48,8 +48,7 @@ module.exports.findByID = async (req, res) => {
     }
 
     const car = response[0];
-    const itemsString = car.items;
-    car.items = itemsString.split(",");
+    car.items = car.items ? car.items.split(",") : [];
 
     res.status(200).json(car);
   } catch (e) {
