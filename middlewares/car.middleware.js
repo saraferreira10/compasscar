@@ -8,7 +8,7 @@ module.exports.checkIfCarExist = async (req, res, next) => {
     const [car] = await db.execute("SELECT * FROM cars WHERE id = ?", [id]);
 
     if (car.length === 0) {
-      return res.status(404).json({ status: "fail", message: "car not found" });
+      return res.status(404).json({ error: "car not found" });
     }
 
     if (req.method !== "DELETE") req.car = car[0];
@@ -59,8 +59,8 @@ module.exports.checkForIdenticalCar = async (req, res, next) => {
       : "SELECT * FROM cars WHERE brand = ? AND model = ? AND year = ? AND id != ?"; // metódo patch
 
   let values = [
-    brand || req.car.brand,
-    model || req.car.model,
+    brand.trim() || req.car.brand,
+    model.trim() || req.car.model,
     year || req.car.year,
   ];
 
