@@ -215,21 +215,12 @@ module.exports.patchCar = async (req, res) => {
 };
 
 module.exports.deleteCar = async (req, res) => {
-  const sql = "DELETE FROM cars WHERE id = ?";
-
   try {
-    const [cars] = await db.execute("SELECT * FROM cars WHERE id = ?", [
-      req.params.id,
-    ]);
-
-    if (cars.length === 0) {
-      return res.status(404).json({ status: "fail", message: "car not found" });
-    }
-
     await db.execute("DELETE FROM cars_items WHERE car_id = ?", [
       req.params.id,
     ]);
-    await db.execute(sql, [req.params.id]);
+
+    await db.execute("DELETE FROM cars WHERE id = ?", [req.params.id]);
     res.status(204).send();
   } catch (e) {
     console.log(e.message);
