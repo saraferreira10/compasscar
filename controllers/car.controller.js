@@ -109,12 +109,14 @@ module.exports.patchCar = async (req, res) => {
   try {
     const { brand, model, year, items } = req.body;
 
+    const car = req.car;
+
     const [identicalCar] = await db.execute(
       "SELECT * FROM cars WHERE brand = ? AND model = ? AND year = ? AND id != ?",
       [
-        brand || car[0].brand,
-        model || car[0].model,
-        year || car[0].year,
+        brand || car.brand,
+        model || car.model,
+        year || car.year,
         req.params.id,
       ]
     );
