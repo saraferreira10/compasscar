@@ -18,8 +18,8 @@ module.exports.save = async (req, res) => {
     const [result] = await connection.execute(queryCreateCar, values);
     const carId = result.insertId;
 
-    if (items && items.length > 0) {
-      await utils.insertCarItems(connection, carId, items);
+    if (items) {
+      await utils.insertAndUpdateCarItems(connection, carId, items);
     }
 
     await connection.commit();
@@ -120,7 +120,11 @@ module.exports.findAll = async (req, res) => {
 };
 
 module.exports.patchCar = async (req, res) => {
+  const connection = await db.getConnection();
+
   try {
+    await connection.beginTransaction();
+
     const { brand, model, year, items } = req.body;
 
     const queryFields = []; // armazena as partes necessárias na construção da query (ex. "field = ?")
@@ -152,19 +156,23 @@ module.exports.patchCar = async (req, res) => {
     }
 
     if (items) {
-      await utils.insertAndUpdateCarItems(req.params.id, items);
+      await utils.insertAndUpdateCarItems(connection, req.params.id, items);
     }
 
     if (queryFields.length > 0) {
       valueFields.push(req.params.id);
       const query = `UPDATE cars SET ${queryFields} WHERE id = ?`;
-      await db.execute(query, valueFields);
+      await connection.execute(query, valueFields);
     }
 
+    await connection.commit();
     res.status(204).send();
   } catch (e) {
     console.log(e);
+    await connection.rollback();
     res.status(500).json({ error: "internal server error" });
+  } finally {
+    connection.release();
   }
 };
 

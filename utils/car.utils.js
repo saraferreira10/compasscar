@@ -12,7 +12,7 @@ module.exports.insertAndUpdateCarItems = async (connection, id, items) => {
   try {
     const uniqueItems = [...new Set(items)];
 
-    await db.execute("DELETE FROM cars_items WHERE car_id = ?", [id]); // deleta os itens caso existam
+    await connection.execute("DELETE FROM cars_items WHERE car_id = ?", [id]); // deleta os itens caso existam
 
     for (const item of uniqueItems) {
       await connection.execute(
