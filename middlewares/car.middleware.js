@@ -1,7 +1,5 @@
 const db = require("../database/connection");
 
-const utils = require("../utils/car.utils");
-
 module.exports.checkIfCarExist = async (req, res, next) => {
   try {
     const id = req.params.id * 1;
@@ -81,4 +79,8 @@ module.exports.validateCarYear = (req, res, next) => {
   }
 
   next();
+};
+
+module.exports.defaultErrorHandler = (req, res) => {
+  return res.status(500).json({ error: "internal server error" });
 };

@@ -12,7 +12,7 @@ router
     middleware.validateRequiredFields,
     middleware.validateCarYear,
     middleware.checkForIdenticalCar,
-    controller.save
+    controller.save,
   );
 
 router
@@ -22,7 +22,7 @@ router
     middleware.checkIfCarExist,
     middleware.checkForIdenticalCar,
     middleware.validateCarYear,
-    controller.patchCar
+    controller.patchCar,
   )
   .delete(middleware.checkIfCarExist, controller.deleteCar);
 

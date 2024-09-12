@@ -2,7 +2,7 @@ const db = require("../database/connection");
 
 const utils = require("../utils/car.utils");
 
-module.exports.save = async (req, res) => {
+module.exports.save = async (req, res, next) => {
   const connection = await db.getConnection();
 
   try {
@@ -17,10 +17,7 @@ module.exports.save = async (req, res) => {
     const [result] = await connection.execute(queryCreateCar, values);
     const carId = result.insertId;
 
-    if (items) {
-      await utils.insertAndUpdateCarItems(connection, carId, items);
-    }
-
+    if (items) await utils.insertAndUpdateCarItems(connection, carId, items);
     await connection.commit();
 
     res
@@ -29,13 +26,13 @@ module.exports.save = async (req, res) => {
   } catch (e) {
     await connection.rollback();
     console.log(e);
-    res.status(500).json({ error: "internal server error" });
+    next(); // chama o middleware de erro
   } finally {
     connection.release();
   }
 };
 
-module.exports.findByID = async (req, res) => {
+module.exports.findByID = async (req, res, next) => {
   try {
     const [response] = await db.execute(
       `SELECT cars.*, group_concat(cars_items.name) AS items 
@@ -55,12 +52,12 @@ module.exports.findByID = async (req, res) => {
 
     res.status(200).json(car);
   } catch (e) {
-    console.log(e.message);
-    res.status(500).json({ error: "internal server error" });
+    console.log(e);
+    next(); // chama o middleware de erro
   }
 };
 
-module.exports.findAll = async (req, res) => {
+module.exports.findAll = async (req, res, next) => {
   try {
     let { page, limit, brand, model, year } = req.query;
 
@@ -113,12 +110,12 @@ module.exports.findAll = async (req, res) => {
       data: cars,
     });
   } catch (e) {
-    console.log(e.message);
-    res.status(500).json({ error: "internal server error" });
+    console.log(e);
+    next(); // chama o middleware de erro
   }
 };
 
-module.exports.patchCar = async (req, res) => {
+module.exports.patchCar = async (req, res, next) => {
   const connection = await db.getConnection();
 
   try {
@@ -157,16 +154,17 @@ module.exports.patchCar = async (req, res) => {
     await connection.commit();
     res.status(204).send();
   } catch (e) {
-    console.log(e);
     await connection.rollback();
-    res.status(500).json({ error: "internal server error" });
+    console.log(e);
+    next(); // chama o middleware de erro
   } finally {
     connection.release();
   }
 };
 
-module.exports.deleteCar = async (req, res) => {
+module.exports.deleteCar = async (req, res, next) => {
   const connection = await db.getConnection();
+
   try {
     await connection.beginTransaction();
 
@@ -175,13 +173,13 @@ module.exports.deleteCar = async (req, res) => {
     ]);
 
     await connection.execute("DELETE FROM cars WHERE id = ?", [req.params.id]);
-
     await connection.commit();
+
     res.status(204).send();
   } catch (e) {
-    console.log(e);
     await connection.rollback();
-    res.status(500).json({ error: "internal server error" });
+    console.log(e);
+    next(); // chama o middleware de erro
   } finally {
     connection.release();
   }
