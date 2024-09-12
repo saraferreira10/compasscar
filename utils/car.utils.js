@@ -8,7 +8,7 @@ module.exports.validateCarYear = (year) => {
   };
 };
 
-module.exports.insertCarItems = async (connection, id, items) => {
+module.exports.insertAndUpdateCarItems = async (connection, id, items) => {
   try {
     const uniqueItems = [...new Set(items)];
 

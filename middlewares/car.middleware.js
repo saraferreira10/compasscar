@@ -68,6 +68,8 @@ module.exports.checkForIdenticalCar = async (req, res, next) => {
 
   const [identicalCar] = await db.execute(sql, values);
 
+  console.log(identicalCar)
+
   if (identicalCar.length !== 0) {
     return res.status(409).json({
       error: "there is already a car with this data",

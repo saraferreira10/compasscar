@@ -3,7 +3,11 @@ const db = require("../database/connection");
 const utils = require("../utils/car.utils");
 
 module.exports.save = async (req, res) => {
+  const connection = await db.getConnection();
+
   try {
+    await connection.beginTransaction();
+
     const { brand, model, year, items } = req.body;
 
     const values = [brand, model, year];
@@ -11,23 +15,24 @@ module.exports.save = async (req, res) => {
     const queryCreateCar =
       "INSERT INTO cars (brand, model, year) VALUES (?, ?, ?)";
 
-    const [result] = await db.execute(queryCreateCar, values);
+    const [result] = await connection.execute(queryCreateCar, values);
     const carId = result.insertId;
 
-    let uniqueItems = [];
-
-    if (items) {
-      await utils.insertCarItems(carId, items);
+    if (items && items.length > 0) {
+      await utils.insertCarItems(connection, carId, items);
     }
+
+    await connection.commit();
 
     res
       .status(201)
-      .json(
-        Object.assign({ id: carId }, { brand, model, year, items: uniqueItems })
-      );
+      .json(Object.assign({ id: carId }, { brand, model, year, items: items }));
   } catch (e) {
+    await connection.rollback();
     console.log(e);
     res.status(500).json({ error: "internal server error" });
+  } finally {
+    connection.release();
   }
 };
 
@@ -132,16 +137,22 @@ module.exports.patchCar = async (req, res) => {
     }
 
     if (year) {
-      const { isValid } = utils.validateCarYear(year);
+      const { isValid, currentYear } = utils.validateCarYear(year);
 
       if (isValid) {
         queryFields.push("year = ?");
         valueFields.push(year);
+      } else {
+        return res.status(400).json({
+          error: `year should be between ${
+            currentYear - 10
+          } and ${currentYear}`,
+        });
       }
     }
 
     if (items) {
-      await utils.updateCarItems(req.params.id, items);
+      await utils.insertAndUpdateCarItems(req.params.id, items);
     }
 
     if (queryFields.length > 0) {
