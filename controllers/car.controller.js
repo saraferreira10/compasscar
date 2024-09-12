@@ -10,10 +10,9 @@ module.exports.save = async (req, res) => {
 
     const { brand, model, year, items } = req.body;
 
-    const values = [brand, model, year];
-
     const queryCreateCar =
       "INSERT INTO cars (brand, model, year) VALUES (?, ?, ?)";
+    const values = [brand, model, year];
 
     const [result] = await connection.execute(queryCreateCar, values);
     const carId = result.insertId;
@@ -141,18 +140,8 @@ module.exports.patchCar = async (req, res) => {
     }
 
     if (year) {
-      const { isValid, currentYear } = utils.validateCarYear(year);
-
-      if (isValid) {
-        queryFields.push("year = ?");
-        valueFields.push(year);
-      } else {
-        return res.status(400).json({
-          error: `year should be between ${
-            currentYear - 10
-          } and ${currentYear}`,
-        });
-      }
+      queryFields.push("year = ?");
+      valueFields.push(year);
     }
 
     if (items) {

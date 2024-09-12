@@ -9,7 +9,8 @@ router
   .route("/cars")
   .get(controller.findAll)
   .post(
-    middleware.checkRequiredFields,
+    middleware.validateRequiredFields,
+    middleware.validateCarYear,
     middleware.checkForIdenticalCar,
     controller.save
   );
@@ -20,6 +21,7 @@ router
   .patch(
     middleware.checkIfCarExist,
     middleware.checkForIdenticalCar,
+    middleware.validateCarYear,
     controller.patchCar
   )
   .delete(middleware.checkIfCarExist, controller.deleteCar);

@@ -1,13 +1,5 @@
 const db = require("../database/connection");
 
-module.exports.validateCarYear = (year) => {
-  const currentYear = new Date().getFullYear() + 1;
-  return {
-    isValid: year >= currentYear - 10 && year <= currentYear,
-    currentYear,
-  };
-};
-
 module.exports.insertAndUpdateCarItems = async (connection, id, items) => {
   try {
     const uniqueItems = [...new Set(items)];

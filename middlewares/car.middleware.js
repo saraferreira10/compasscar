@@ -20,7 +20,7 @@ module.exports.checkIfCarExist = async (req, res, next) => {
   }
 };
 
-module.exports.checkRequiredFields = (req, res, next) => {
+module.exports.validateRequiredFields = (req, res, next) => {
   const { brand, model, year, items } = req.body;
 
   if (!brand || brand.trim() === "") {
@@ -37,14 +37,6 @@ module.exports.checkRequiredFields = (req, res, next) => {
 
   if (!items) {
     return res.status(400).json({ error: "items is required" });
-  }
-
-  const { isValid, currentYear } = utils.validateCarYear(year * 1);
-
-  if (!isValid) {
-    return res.status(400).json({
-      error: `year should be between ${currentYear - 10} and ${currentYear}`,
-    });
   }
 
   next();
@@ -68,11 +60,23 @@ module.exports.checkForIdenticalCar = async (req, res, next) => {
 
   const [identicalCar] = await db.execute(sql, values);
 
-  console.log(identicalCar)
-
   if (identicalCar.length !== 0) {
     return res.status(409).json({
       error: "there is already a car with this data",
+    });
+  }
+
+  next();
+};
+
+module.exports.validateCarYear = (req, res, next) => {
+  const year = req.body.year;
+  const currentYear = new Date().getFullYear() + 1;
+  const isValid = year >= currentYear - 10 && year <= currentYear;
+
+  if (!isValid) {
+    return res.status(400).json({
+      error: `year should be between ${currentYear - 10} and ${currentYear}`,
     });
   }
 
