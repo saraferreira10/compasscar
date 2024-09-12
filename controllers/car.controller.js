@@ -177,15 +177,23 @@ module.exports.patchCar = async (req, res) => {
 };
 
 module.exports.deleteCar = async (req, res) => {
+  const connection = await db.getConnection();
   try {
-    await db.execute("DELETE FROM cars_items WHERE car_id = ?", [
+    await connection.beginTransaction();
+
+    await connection.execute("DELETE FROM cars_items WHERE car_id = ?", [
       req.params.id,
     ]);
 
-    await db.execute("DELETE FROM cars WHERE id = ?", [req.params.id]);
+    await connection.execute("DELETE FROM cars WHERE id = ?", [req.params.id]);
+
+    await connection.commit();
     res.status(204).send();
   } catch (e) {
     console.log(e);
+    await connection.rollback();
     res.status(500).json({ error: "internal server error" });
+  } finally {
+    connection.release();
   }
 };
