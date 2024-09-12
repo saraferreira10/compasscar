@@ -8,9 +8,20 @@ module.exports.validateCarYear = (year) => {
   };
 };
 
+module.exports.insertCarItems = async (id, items) => {
+  const uniqueItems = [...new Set(items)];
+
+  for (const item of uniqueItems) {
+    await db.execute("INSERT INTO cars_items (name, car_id) VALUES (?, ?)", [
+      item,
+      id,
+    ]);
+  }
+};
+
 module.exports.updateCarItems = async (id, items) => {
   try {
-    let newItems = items; // armazena os itens que devem ser adicionados
+    let newItems = [...new Set(items)]; // armazena os itens que devem ser adicionados
     let removeItems = []; // armazena os itens que devem ser removidos
 
     const [currentItems] = await db.execute(

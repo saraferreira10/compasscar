@@ -17,8 +17,7 @@ module.exports.save = async (req, res) => {
     let uniqueItems = [];
 
     if (items) {
-      uniqueItems = [...new Set(items)];
-      await utils.updateCarItems(carId, uniqueItems);
+      await utils.insertCarItems(carId, items);
     }
 
     res
@@ -142,8 +141,7 @@ module.exports.patchCar = async (req, res) => {
     }
 
     if (items) {
-      const uniqueItems = [...new Set(items)];
-      await utils.updateCarItems(req.params.id, uniqueItems);
+      await utils.updateCarItems(req.params.id, items);
     }
 
     if (queryFields.length > 0) {
