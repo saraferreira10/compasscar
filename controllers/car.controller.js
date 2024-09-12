@@ -91,16 +91,16 @@ module.exports.findAll = async (req, res) => {
 
       sqlCount = `SELECT COUNT(*) AS count FROM cars WHERE ${filterQuery.join(
         " AND "
-      )}`;
+      )} LIMIT ${limit} OFFSET ${skip}`;
     }
 
     let [count] = await db.execute(sqlCount);
 
-    count = count[0].count;
-
-    if (count === 0) {
+    if (count.length === 0 || count[0].count === 0) {
       return res.status(204).send();
     }
+
+    count = count[0].count;
 
     const [cars] = await db.execute(sqlCars);
 
