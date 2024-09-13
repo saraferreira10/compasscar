@@ -15,37 +15,37 @@ This project is a challenge of the CompassUOL Scholarship Program. It consists o
 - DELETE ``` /api/v1/cars/:id```
 
 
-### Rodando localmente
+### Running locally
 
-Clone o projeto
+Clone the project
 
 ```bash
   git clone https://github.com/saraferreira10/compasscar.git
 ```
 
-Entre no diretório do projeto
+Enter the project directory
 
 ```bash
   cd COMPASSCAR
 ```
 
-Instale as dependências
+Install dependencies
 
 ```bash
   npm install
 ```
 
-Crie a pasta *config* contendo o arquivo *config.env* e coloque os dados necessários.
+Create the *config* folder containing the *config.env* file and place the necessary data.
 
 ```bash
 HOST = "localhost"
 USER = "user"
 PASSWORD = "password"
 DATABASE = "compasscar"
-PORT = 3000
+PORT = 8080
 ```
 
-Inicie o servidor
+Start the server
 
 ```bash
   npm run start
