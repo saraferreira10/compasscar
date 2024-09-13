@@ -22,7 +22,7 @@ module.exports.save = async (req, res, next) => {
 
     res
       .status(201)
-      .json(Object.assign({ id: carId }, { brand, model, year, items }));
+      .json(Object.assign({ id: carId }, { brand, model, year, items: [...new Set(items)] }));
   } catch (e) {
     await connection.rollback();
     console.log(e);
