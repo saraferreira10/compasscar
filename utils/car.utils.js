@@ -20,7 +20,8 @@ module.exports.calculatePaginationValues = (limit, page) => {
     limit = limit && limit > 10 ? 10 : limit;
     limit = limit && limit > 0 ? limit * 1 : 5;
 
-    page = page * 1 || 1;
+    page = page > 0 ? page * 1 : 1;
+
     const offset = (page - 1) * limit;
 
     return { limit, offset };
