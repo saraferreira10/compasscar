@@ -82,7 +82,7 @@ module.exports.createUpdateCarQuery = (brand, model, year, id) => {
     }
 
     if (queryFields.length > 0) {
-      query = `UPDATE cars SET ${queryFields} WHERE id = ?`;
+      query = `UPDATE cars SET ${queryFields.join(", ")} WHERE id = ?`;
       valueFields.push(id);
     }
 

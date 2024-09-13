@@ -33,7 +33,7 @@ module.exports.validateRequiredFields = (req, res, next) => {
     return res.status(400).json({ error: "year is required" });
   }
 
-  if (!items) {
+  if (!items || (items && items.length === 0)) {
     return res.status(400).json({ error: "items is required" });
   }
 
