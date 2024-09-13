@@ -59,54 +59,30 @@ module.exports.findByID = async (req, res, next) => {
 
 module.exports.findAll = async (req, res, next) => {
   try {
-    let { page, limit, brand, model, year } = req.query;
+    let { brand, model, year } = req.query;
 
-    limit = limit && limit > 10 ? 10 : limit;
-    limit = limit && limit > 0 ? limit * 1 : 5;
+    const { limit, offset } = utils.calculatePaginationValues(
+      req.query.limit,
+      req.query.page
+    );
 
-    page = page * 1 || 1;
-    const skip = (page - 1) * limit;
-
-    let sqlCars = `SELECT * FROM cars LIMIT ${limit} OFFSET ${skip}`;
-    let sqlCount = "SELECT COUNT(*) AS count FROM cars";
-
-    const filterQuery = [];
-
-    if (brand) {
-      filterQuery.push(`brand LIKE '%${brand}%'`);
-    }
-
-    if (model) {
-      filterQuery.push(`model LIKE '%${model}%'`);
-    }
-
-    if (year) {
-      filterQuery.push(`year >= ${year}`);
-    }
-
-    if (filterQuery.length > 0) {
-      sqlCars = `SELECT * FROM cars WHERE ${filterQuery.join(
-        " AND "
-      )} LIMIT ${limit} OFFSET ${skip}`;
-
-      sqlCount = `SELECT COUNT(*) AS count FROM cars WHERE ${filterQuery.join(
-        " AND "
-      )} LIMIT ${limit} OFFSET ${skip}`;
-    }
-
-    let [count] = await db.execute(sqlCount);
-
-    if (count.length === 0 || count[0].count === 0) {
-      return res.status(204).send();
-    }
-
-    count = count[0].count;
+    const { sqlCount, sqlCars } = utils.createCarFilterQueries(
+      limit,
+      offset,
+      brand,
+      model,
+      year
+    );
 
     const [cars] = await db.execute(sqlCars);
 
+    if (cars.length === 0) return res.status(204).send();
+
+    const [count] = await db.execute(sqlCount);
+
     res.status(200).json({
-      count,
-      pages: Math.ceil(count / limit),
+      count: count[0].count,
+      pages: Math.ceil(count[0].count / limit),
       data: cars,
     });
   } catch (e) {

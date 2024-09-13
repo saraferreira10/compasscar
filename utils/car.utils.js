@@ -16,3 +16,44 @@ module.exports.insertAndUpdateCarItems = async (connection, id, items) => {
     throw e;
   }
 };
+
+module.exports.calculatePaginationValues = (limit, page) => {
+  limit = limit && limit > 10 ? 10 : limit;
+  limit = limit && limit > 0 ? limit * 1 : 5;
+
+  page = page * 1 || 1;
+  const offset = (page - 1) * limit;
+
+  return { limit, offset };
+};
+
+module.exports.createCarFilterQueries = (limit, offset, brand, model, year) => {
+  let sqlCars = `SELECT * FROM cars LIMIT ${limit} OFFSET ${offset}`;
+  let sqlCount = "SELECT COUNT(*) AS count FROM cars";
+
+  const filterQuery = [];
+
+  if (brand) {
+    filterQuery.push(`brand LIKE '%${brand}%'`);
+  }
+
+  if (model) {
+    filterQuery.push(`model LIKE '%${model}%'`);
+  }
+
+  if (year) {
+    filterQuery.push(`year >= ${year}`);
+  }
+
+  if (filterQuery.length > 0) {
+    sqlCars = `SELECT * FROM cars WHERE ${filterQuery.join(
+      " AND "
+    )} LIMIT ${limit} OFFSET ${offset}`;
+
+    sqlCount = `SELECT COUNT(*) AS count FROM cars WHERE ${filterQuery.join(
+      " AND "
+    )}`;
+  }
+
+  return { sqlCount, sqlCars };
+};
