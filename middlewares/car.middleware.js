@@ -69,6 +69,9 @@ module.exports.checkForIdenticalCar = async (req, res, next) => {
 
 module.exports.validateCarYear = (req, res, next) => {
   const year = req.body.year;
+
+  if (req.method === "PATCH" && !year) return next();
+
   const currentYear = new Date().getFullYear() + 1;
   const isValid = year >= currentYear - 10 && year <= currentYear;
 
