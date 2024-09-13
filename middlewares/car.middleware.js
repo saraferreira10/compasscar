@@ -54,7 +54,7 @@ module.exports.checkForIdenticalCar = async (req, res, next) => {
     year || req.car.year,
   ];
 
-  if (req.method === "PATCH") values.push(+req.params.id);
+  if (req.method === "PATCH") values.push(req.params.id);
 
   const [identicalCar] = await db.execute(sql, values);
 

@@ -22,11 +22,11 @@ module.exports.save = async (req, res, next) => {
 
     res
       .status(201)
-      .json(Object.assign({ id: carId }, { brand, model, year, items: items }));
+      .json(Object.assign({ id: carId }, { brand, model, year, items }));
   } catch (e) {
     await connection.rollback();
     console.log(e);
-    next(); // chama o middleware de erro
+    next();
   } finally {
     connection.release();
   }
@@ -34,26 +34,27 @@ module.exports.save = async (req, res, next) => {
 
 module.exports.findByID = async (req, res, next) => {
   try {
-    const [response] = await db.execute(
-      `SELECT cars.*, group_concat(cars_items.name) AS items 
-        FROM cars 
-        LEFT JOIN cars_items ON cars.id = cars_items.car_id 
-        WHERE cars.id = ? 
-        GROUP BY cars.id`,
-      [req.params.id]
-    );
+    const [response] = await db.execute("SELECT * FROM cars WHERE id = ?", [
+      req.params.id,
+    ]);
 
     if (response.length === 0) {
       return res.status(404).json({ error: "car not found" });
     }
 
     const car = response[0];
-    car.items = car.items ? car.items.split(",") : [];
+
+    const [items] = await db.execute(
+      "SELECT * FROM cars_items WHERE car_id = ?",
+      [req.params.id]
+    );
+
+    car.items = items.map((item) => item.name);
 
     res.status(200).json(car);
   } catch (e) {
     console.log(e);
-    next(); // chama o middleware de erro
+    next();
   }
 };
 
@@ -87,7 +88,7 @@ module.exports.findAll = async (req, res, next) => {
     });
   } catch (e) {
     console.log(e);
-    next(); // chama o middleware de erro
+    next(); 
   }
 };
 
@@ -99,40 +100,25 @@ module.exports.patchCar = async (req, res, next) => {
 
     const { brand, model, year, items } = req.body;
 
-    const queryFields = []; // armazena as partes necessárias na construção da query (ex. "field = ?")
-    const valueFields = []; // armazena os valores que serão colocados no prepared statement
-
-    if (brand && brand.trim() !== "") {
-      queryFields.push("brand = ?");
-      valueFields.push(brand);
-    }
-
-    if (model && model.trim() !== "") {
-      queryFields.push("model = ?");
-      valueFields.push(model);
-    }
-
-    if (year) {
-      queryFields.push("year = ?");
-      valueFields.push(year);
-    }
+    const { query, valueFields } = utils.createUpdateCarQuery(
+      brand,
+      model,
+      year,
+      req.params.id
+    );
 
     if (items) {
       await utils.insertAndUpdateCarItems(connection, req.params.id, items);
     }
 
-    if (queryFields.length > 0) {
-      valueFields.push(req.params.id);
-      const query = `UPDATE cars SET ${queryFields} WHERE id = ?`;
-      await connection.execute(query, valueFields);
-    }
+    if (query) await connection.execute(query, valueFields);
 
     await connection.commit();
     res.status(204).send();
   } catch (e) {
     await connection.rollback();
     console.log(e);
-    next(); // chama o middleware de erro
+    next(); 
   } finally {
     connection.release();
   }
@@ -155,7 +141,7 @@ module.exports.deleteCar = async (req, res, next) => {
   } catch (e) {
     await connection.rollback();
     console.log(e);
-    next(); // chama o middleware de erro
+    next();
   } finally {
     connection.release();
   }
