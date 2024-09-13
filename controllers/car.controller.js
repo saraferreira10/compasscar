@@ -107,7 +107,7 @@ module.exports.patchCar = async (req, res, next) => {
       req.params.id
     );
 
-    if (items) {
+    if (items && items.length > 0) {
       await utils.insertAndUpdateCarItems(connection, req.params.id, items);
     }
 
